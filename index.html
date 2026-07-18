@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0b0705" />
   <title>Sanatan Dharma | An Immersive Spiritual Journey</title>
+  <meta name="author" content="Aahan Sadhukhan" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=Noto+Serif+Devanagari:wght@400;600;700&amp;family=Playfair+Display:ital,wght@0,500;0,700;1,500&amp;display=swap" rel="stylesheet">
@@ -1543,6 +1544,10 @@
     <source src="https://commons.wikimedia.org/wiki/Special:FilePath/Mrityunjaya.ogg" type="audio/ogg">
   </audio>
 
+  <audio id="omVoice" preload="none">
+    <source src="https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9610_%28ben%29-Titodutta-%E0%A6%93%E0%A6%81.wav" type="audio/wav">
+  </audio>
+
   <nav class="nav" aria-label="Primary navigation">
     <div class="nav-inner">
       <a class="brand" href="#home" aria-label="Sanatan Dharma home">
@@ -2130,7 +2135,8 @@
   <footer>
     <div class="section-inner">
       <span>Created as a respectful immersive tribute to Hinduism and Sanatan Dharma.</span>
-      <span>Media streams from Wikimedia Commons; audio begins only after user interaction.</span>
+      <span>The Gayatri and Mrityunjaya recordings stream from Wikimedia Commons; the Om drone is synthesized in your browser. Audio begins only after user interaction.</span>
+      <span>Designed and developed by Aahan Sadhukhan.</span>
     </div>
   </footer>
 
@@ -2290,6 +2296,7 @@
     updateOnScroll();
 
     const audio = document.getElementById("chant");
+    const omVoice = document.getElementById("omVoice");
     const toggle = document.getElementById("audioToggle");
     const volume = document.getElementById("chantVolume");
     const droneToggle = document.getElementById("droneToggle");
@@ -2371,6 +2378,7 @@
     let droneEnabled = true;
     let mantraTimer;
     let bellTimer;
+    let omVoiceTimer;
     let breathTimer;
     let mantraIndex = 0;
     let japaTotal = 0;
@@ -2490,7 +2498,7 @@
       const subGain = audioContext.createGain();
       subOsc.type = "sine";
       subOsc.frequency.value = frequencies[0] / 2;
-      subGain.gain.value = 0.05;
+      subGain.gain.value = 0.065;
       subOsc.connect(subGain);
       subGain.connect(warmthFilter);
       subOsc.start();
@@ -2504,7 +2512,7 @@
           oscillator.type = index === 1 ? "triangle" : "sine";
           oscillator.frequency.value = frequency;
           oscillator.detune.value = detune;
-          gain.gain.value = index === 0 ? 0.03 : 0.016;
+          gain.gain.value = index === 0 ? 0.04 : 0.022;
           oscillator.connect(gain);
           gain.connect(warmthFilter);
           oscillator.start();
@@ -2539,7 +2547,7 @@
       if (!audioContext || !droneGain) return;
       const now = audioContext.currentTime;
       droneGain.gain.cancelScheduledValues(now);
-      droneGain.gain.setTargetAtTime(active && droneEnabled ? 0.58 : 0, now, 0.8);
+      droneGain.gain.setTargetAtTime(active && droneEnabled ? 0.74 : 0, now, 0.8);
     };
 
     const playBell = () => {
@@ -2582,6 +2590,23 @@
       clearInterval(bellTimer);
     };
 
+    const playOmVoice = () => {
+      if (!omVoice) return;
+      omVoice.volume = 0.92;
+      omVoice.currentTime = 0;
+      omVoice.play().catch(() => {});
+    };
+
+    const startOmVoiceCycle = () => {
+      clearInterval(omVoiceTimer);
+      playOmVoice();
+      omVoiceTimer = setInterval(playOmVoice, 14400);
+    };
+
+    const stopOmVoiceCycle = () => {
+      clearInterval(omVoiceTimer);
+    };
+
     toggle.addEventListener("click", async () => {
       const isChanting = document.body.classList.contains("chanting");
       if (!isChanting) {
@@ -2598,6 +2623,7 @@
           document.body.classList.add("chanting");
           startMantraRotation();
           startBellCycle();
+          startOmVoiceCycle();
           toggle.textContent = "Pause Chant";
           toggle.setAttribute("aria-pressed", "true");
         } catch (error) {
@@ -2609,6 +2635,7 @@
         document.body.classList.remove("chanting");
         stopMantraRotation();
         stopBellCycle();
+        stopOmVoiceCycle();
         setTimeout(() => {
           if (!document.body.classList.contains("chanting")) audio.pause();
         }, 720);
